@@ -10,6 +10,7 @@ import KeyChanges from "@/components/ui/key-changes";
 import StudyImpact from "@/components/ui/study-impact";
 import PeerComparison from "@/components/ui/peer-comparison";
 import AskQuestions from "@/components/ui/ask-questions";
+import TimeSeriesChart from "@/components/ui/time-series-chart";
 import { Button } from "@/components/ui/button";
 import { HealthData, MetricData } from "@/lib/types";
 import { format } from "date-fns";
@@ -137,6 +138,15 @@ const Insights = () => {
                 <CorrelationCard key={factor.id} factor={factor} />
               ))}
             </CategoryHeader>
+            
+            {/* Your Progress Over Time */}
+            <h2 className="text-xl font-bold mt-8 mb-4">Your Progress Over Time</h2>
+            <TimeSeriesChart 
+              title="Metrics Trends" 
+              metrics={allMetrics.filter(m => Math.abs(m.percentChange) > 5).slice(0, 3)} 
+              activePeriod={activePeriod}
+              onPeriodChange={setActivePeriod}
+            />
             
             {/* Removed Study Impact Section as requested */}
           </>

@@ -65,7 +65,16 @@ export async function generateSuggestedQuestions(
   category: string
 ): Promise<string[]> {
   try {
-    const prompt = `Based on a health study called "${studyName}" with a primary metric of "${primaryMetric}" in the category of "${category}", generate 5 questions that a study participant might want to ask. Make the questions specific, practical, and focused on understanding their results or how to improve their health in this area. Each question should be a single sentence and focus only on ${primaryMetric} or related ${category} metrics.`;
+    const prompt = `Based on a health study called "${studyName}" with a primary metric of "${primaryMetric}" in the category of "${category}", generate 5 questions that a study participant might want to ask. Make the questions specific, practical, and focused on understanding their results or how to improve their health in this area. Each question should be a single sentence and focus only on ${primaryMetric} or related ${category} metrics.
+
+Please respond with a JSON object that contains an array of questions using this format:
+{
+  "questions": [
+    "First question here?",
+    "Second question here?",
+    ...
+  ]
+}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
