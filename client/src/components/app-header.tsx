@@ -79,10 +79,16 @@ const AppHeader = ({
           Heart
         </button>
         <button 
-          className={`pb-2 ${activeCategory === 'stress' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
+          className={`pb-2 mr-6 ${activeCategory === 'stress' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
           onClick={() => onCategoryChange('stress')}
         >
           Stress
+        </button>
+        <button 
+          className={`pb-2 ${activeCategory === 'ask' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
+          onClick={() => onCategoryChange('ask')}
+        >
+          Ask
         </button>
       </div>
     </div>

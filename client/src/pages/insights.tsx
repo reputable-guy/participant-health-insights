@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Moon, ActivityIcon, Heart, Diamond, Sparkles } from "lucide-react";
+import { Moon, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
 import CorrelationCard from "@/components/ui/correlation-card";
 import StudyFocus from "@/components/ui/study-focus";
 import KeyChanges from "@/components/ui/key-changes";
+import StudyImpact from "@/components/ui/study-impact";
+import PeerComparison from "@/components/ui/peer-comparison";
+import AskQuestions from "@/components/ui/ask-questions";
 import { HealthData } from "@/lib/types";
+import { format } from "date-fns";
 
 const Insights = () => {
   const [activeCategory, setActiveCategory] = useState('overview');
+  const [comparisonFilter, setComparisonFilter] = useState("All Participants");
   
   const { data, isLoading, error } = useQuery({
     queryKey: [`/api/health-data`],
@@ -58,6 +63,9 @@ const Insights = () => {
     ...(cardiovascularCategory?.metrics || []),
     ...(stressCategory?.metrics || [])
   ];
+
+  // Get completion date (for demo, we'll use current date minus 5 days)
+  const completionDate = format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMMM d, yyyy');
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
@@ -124,6 +132,14 @@ const Insights = () => {
                 <CorrelationCard key={factor.id} factor={factor} />
               ))}
             </CategoryHeader>
+            
+            {/* Study Impact Section */}
+            <StudyImpact 
+              totalParticipants={157}
+              participantRank={22}
+              studyName={healthData.studyInfo.studyName}
+              completionDate={completionDate}
+            />
           </>
         )}
         
@@ -134,21 +150,32 @@ const Insights = () => {
         
         {/* Sleep Section */}
         {activeCategory === 'sleep' && sleepCategory && (
-          <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
-            <div className="space-y-3">
-              {/* Featured metrics (full size) */}
-              {sleepCategory.metrics.slice(0, 2).map(metric => (
-                <MetricCard key={metric.id} metric={metric} />
-              ))}
-              
-              {/* Other metrics (compact grid) */}
-              <div className="grid grid-cols-2 gap-3">
-                {sleepCategory.metrics.slice(2).map(metric => (
-                  <MetricCard key={metric.id} metric={metric} compact />
+          <>
+            <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
+              <div className="space-y-3">
+                {/* Featured metrics (full size) */}
+                {sleepCategory.metrics.slice(0, 2).map(metric => (
+                  <MetricCard key={metric.id} metric={metric} />
                 ))}
+                
+                {/* Other metrics (compact grid) */}
+                <div className="grid grid-cols-2 gap-3">
+                  {sleepCategory.metrics.slice(2).map(metric => (
+                    <MetricCard key={metric.id} metric={metric} compact />
+                  ))}
+                </div>
               </div>
-            </div>
-          </CategoryHeader>
+            </CategoryHeader>
+            
+            {/* Peer Comparison for primary sleep metric */}
+            {primaryMetric && (
+              <PeerComparison 
+                metric={primaryMetric} 
+                activeFilter={comparisonFilter}
+                onFilterChange={setComparisonFilter}
+              />
+            )}
+          </>
         )}
         
         {/* Activity Section */}
@@ -200,6 +227,11 @@ const Insights = () => {
               </div>
             </div>
           </CategoryHeader>
+        )}
+        
+        {/* Ask Questions Section */}
+        {activeCategory === 'ask' && (
+          <AskQuestions studyName={healthData.studyInfo.studyName} />
         )}
       </main>
     </div>
