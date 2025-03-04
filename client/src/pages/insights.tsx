@@ -110,6 +110,17 @@ const Insights = () => {
               </div>
             </div>
             
+            {/* Your Progress Over Time */}
+            <div className="mt-6">
+              <h2 className="text-xl font-bold mb-4">Your Progress Over Time</h2>
+              <TimeSeriesChart 
+                title={primaryMetric ? `${primaryMetric.name} Trend` : "Deep Sleep Trend"} 
+                metrics={primaryMetric ? [primaryMetric] : (sleepCategory?.metrics ? [sleepCategory.metrics[0]] : [])} 
+                activePeriod={activePeriod}
+                onPeriodChange={setActivePeriod}
+              />
+            </div>
+            
             {/* Top Categories */}
             <div className="space-y-4">
               {sleepCategory && (
@@ -137,17 +148,6 @@ const Insights = () => {
                 <CorrelationCard key={factor.id} factor={factor} />
               ))}
             </CategoryHeader>
-            
-            {/* Your Progress Over Time */}
-            <div className="mt-8">
-              <h2 className="text-xl font-bold mb-4">Your Progress Over Time</h2>
-              <TimeSeriesChart 
-                title={primaryMetric ? `${primaryMetric.name} Trend` : "Deep Sleep Trend"} 
-                metrics={primaryMetric ? [primaryMetric] : (sleepCategory?.metrics ? [sleepCategory.metrics[0]] : [])} 
-                activePeriod={activePeriod}
-                onPeriodChange={setActivePeriod}
-              />
-            </div>
             
             {/* Removed Study Impact Section as requested */}
           </>

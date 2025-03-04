@@ -105,8 +105,8 @@ const TimeSeriesChart: FC<TimeSeriesChartProps> = ({
           />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] w-full">
+      <CardContent className="pt-2 pb-4">
+        <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={timeSeriesData}
