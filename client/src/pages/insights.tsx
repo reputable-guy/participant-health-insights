@@ -84,34 +84,49 @@ const Insights = () => {
         {/* Overview Section */}
         {activeCategory === 'overview' && (
           <>
-            {/* Study Focus Section */}
-            {primaryMetric && (
-              <StudyFocus 
-                studyName={healthData.studyInfo.studyName}
-                primaryMetric={primaryMetric}
-                hypothesis="Using an acupressure mat for 20 minutes before bedtime will increase deep sleep duration by at least 30%."
-                goalValue={2.2} // Target deep sleep hours
-                targetPercentChange={30} // From hypothesis: "at least 30%"
-                significance={0.031} // p-value
-                groupAvgChange={8.3} // Average study group change
-                confidenceInterval={[5.2, 18.1]} // 95% CI for individual's results
-              />
-            )}
+            {/* How to read your results guide */}
+            <div className="mb-6 bg-surface p-3 rounded-lg border border-border">
+              <h3 className="font-medium text-sm mb-2 flex items-center">
+                <HelpCircle className="h-4 w-4 mr-2" />
+                How to read your results
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                This dashboard shows your personal results from the {healthData.studyInfo.studyName}. 
+                Start with the main study goal below, then explore your key metrics and trends.
+                Use the tabs above to dive deeper into specific health categories.
+              </p>
+            </div>
             
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-primary/5 rounded-lg p-3">
-                <h3 className="text-sm font-medium mb-1">Study Duration</h3>
-                <p className="text-xl font-semibold">{healthData.studyInfo.totalDays} Days</p>
+            {/* Key Stats Summary - More Prominent */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-primary/10 rounded-lg p-4 flex flex-col justify-center items-center">
+                <h3 className="text-sm font-medium mb-1 text-center">Study Duration</h3>
+                <p className="text-2xl font-semibold">{healthData.studyInfo.totalDays} Days</p>
               </div>
-              <div className="bg-primary/5 rounded-lg p-3">
-                <h3 className="text-sm font-medium mb-1">Key Findings</h3>
-                <p className="text-xl font-semibold">{allMetrics.filter(m => Math.abs(m.percentChange) > 5).length}</p>
+              <div className="bg-primary/10 rounded-lg p-4 flex flex-col justify-center items-center">
+                <h3 className="text-sm font-medium mb-1 text-center">Key Findings</h3>
+                <p className="text-2xl font-semibold">{allMetrics.filter(m => Math.abs(m.percentChange) > 5).length}</p>
               </div>
             </div>
             
+            {/* Main Study Focus - The most important part */}
+            {primaryMetric && (
+              <div className="mb-6">
+                <StudyFocus 
+                  studyName={healthData.studyInfo.studyName}
+                  primaryMetric={primaryMetric}
+                  hypothesis="Using an acupressure mat for 20 minutes before bedtime will increase deep sleep duration by at least 30%."
+                  goalValue={2.2} // Target deep sleep hours
+                  targetPercentChange={30} // From hypothesis: "at least 30%"
+                  significance={0.031} // p-value
+                  groupAvgChange={8.3} // Average study group change
+                  confidenceInterval={[5.2, 18.1]} // 95% CI for individual's results
+                />
+              </div>
+            )}
+            
             {/* Your Progress Over Time */}
-            <div className="mt-6">
+            <div className="mb-6">
               <h2 className="text-xl font-bold mb-4">Your Progress Over Time</h2>
               <TimeSeriesChart 
                 title={primaryMetric ? `${primaryMetric.name} Trend` : "Deep Sleep Trend"} 
@@ -121,35 +136,81 @@ const Insights = () => {
               />
             </div>
             
-            {/* Top Categories */}
-            <div className="space-y-4">
-              {sleepCategory && (
-                <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
-                  <div className="space-y-3">
-                    {sleepCategory.metrics.slice(0, 2).map(metric => (
-                      <MetricCard key={metric.id} metric={metric} />
-                    ))}
+            {/* Questions and Navigation */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Ask Questions Feature - Right in the overview */}
+              <div className="col-span-1 md:col-span-3">
+                <div className="bg-surface border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h3 className="font-medium">Have questions about your results?</h3>
                   </div>
-                </CategoryHeader>
-              )}
+                  
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Our AI assistant can answer questions about your study results and what they mean for your health.
+                  </p>
+                  
+                  <Button onClick={() => setActiveCategory('ask')} className="flex gap-2 items-center">
+                    <HelpCircle className="h-4 w-4" /> Ask a Question
+                  </Button>
+                </div>
+              </div>
               
-              {activityCategory && (
-                <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
-                  <div className="space-y-3">
-                    <MetricCard metric={activityCategory.metrics[0]} />
-                  </div>
-                </CategoryHeader>
-              )}
+              {/* Jump to section navigation */}
+              <div className="col-span-1 md:col-span-1">
+                <h3 className="text-sm font-medium mb-2">Explore your results:</h3>
+                <div className="flex flex-col gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('key-changes')} className="flex gap-2 items-center justify-start">
+                    <Award className="h-4 w-4" /> Key Changes
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('sleep')} className="flex gap-2 items-center justify-start">
+                    <Moon className="h-4 w-4" /> Sleep
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('activity')} className="flex gap-2 items-center justify-start">
+                    <ActivityIcon className="h-4 w-4" /> Activity
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('heart')} className="flex gap-2 items-center justify-start">
+                    <Heart className="h-4 w-4" /> Heart
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Top Categories - Simplified View */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-4">Your Key Metrics</h2>
+              <div className="space-y-4">
+                {sleepCategory && (
+                  <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
+                    <div className="space-y-3">
+                      {sleepCategory.metrics.slice(0, 2).map(metric => (
+                        <MetricCard key={metric.id} metric={metric} />
+                      ))}
+                    </div>
+                  </CategoryHeader>
+                )}
+                
+                {activityCategory && (
+                  <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
+                    <div className="space-y-3">
+                      <MetricCard metric={activityCategory.metrics[0]} />
+                    </div>
+                  </CategoryHeader>
+                )}
+              </div>
             </div>
             
             {/* Correlations Section */}
-            <CategoryHeader title="Key Correlations" icon={<Sparkles className="h-5 w-5" />}>
-              {healthData.correlationFactors.map(factor => (
-                <CorrelationCard key={factor.id} factor={factor} />
-              ))}
-            </CategoryHeader>
-            
-            {/* Removed Study Impact Section as requested */}
+            <div className="mb-3">
+              <CategoryHeader title="Key Correlations" icon={<Sparkles className="h-5 w-5" />}>
+                <p className="text-sm text-muted-foreground mb-4">
+                  These are factors that appeared to influence your results the most during the study.
+                </p>
+                {healthData.correlationFactors.map(factor => (
+                  <CorrelationCard key={factor.id} factor={factor} />
+                ))}
+              </CategoryHeader>
+            </div>
           </>
         )}
         
