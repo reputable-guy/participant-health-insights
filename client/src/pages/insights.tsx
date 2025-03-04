@@ -78,7 +78,10 @@ const Insights = () => {
                 primaryMetric={primaryMetric}
                 hypothesis="Using an acupressure mat for 20 minutes before bedtime will increase deep sleep duration by at least 30%."
                 goalValue={2.2} // Target deep sleep hours
+                targetPercentChange={30} // From hypothesis: "at least 30%"
                 significance={0.031} // p-value
+                groupAvgChange={8.3} // Average study group change
+                confidenceInterval={[5.2, 18.1]} // 95% CI for individual's results
               />
             )}
             
