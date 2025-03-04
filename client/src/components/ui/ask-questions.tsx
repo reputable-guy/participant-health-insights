@@ -41,19 +41,22 @@ const AskQuestions = ({ studyName }: AskQuestionsProps) => {
   // Mutation for asking questions
   const askQuestionMutation = useMutation({
     mutationFn: async (question: string) => {
-      const response = await apiRequest('/api/ask-question', {
+      const response = await fetch('/api/ask-question', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ 
           question,
           studyName
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        })
       });
-      return response;
+      if (!response.ok) {
+        throw new Error('Failed to send question');
+      }
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: {question: string, answer: string}) => {
       const newQuestion = {
         question: data.question,
         answer: data.answer
@@ -112,7 +115,7 @@ const AskQuestions = ({ studyName }: AskQuestionsProps) => {
             </div>
           ) : (
             <div className="space-y-2 mb-4">
-              {suggestedQuestions.map((question, index) => (
+              {suggestedQuestions.map((question: string | SuggestedQuestion, index: number) => (
                 <Button
                   key={index}
                   variant="outline"

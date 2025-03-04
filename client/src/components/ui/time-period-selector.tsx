@@ -1,43 +1,39 @@
-import { TimePeriod } from "@/lib/types";
+import { FC } from 'react';
+import { Button } from '@/components/ui/button';
+import { TimePeriod } from '@/lib/types';
 
 interface TimePeriodSelectorProps {
   activePeriod: TimePeriod;
   onChange: (period: TimePeriod) => void;
 }
 
-const TimePeriodSelector = ({ activePeriod, onChange }: TimePeriodSelectorProps) => {
+const TimePeriodSelector: FC<TimePeriodSelectorProps> = ({ activePeriod, onChange }) => {
   return (
-    <div className="flex space-x-1 bg-surface rounded-full p-1">
-      <button 
-        className={`px-3 py-1 text-xs rounded-full transition-colors ${
-          activePeriod === 'day' 
-            ? 'bg-primary text-white' 
-            : 'hover:bg-surfaceHover text-muted-foreground'
-        }`}
+    <div className="flex gap-0.5 rounded-md overflow-hidden border">
+      <Button
+        variant={activePeriod === 'day' ? 'default' : 'ghost'}
+        className="rounded-none h-8 px-3"
         onClick={() => onChange('day')}
+        size="sm"
       >
         Day
-      </button>
-      <button 
-        className={`px-3 py-1 text-xs rounded-full transition-colors ${
-          activePeriod === 'week' 
-            ? 'bg-primary text-white' 
-            : 'hover:bg-surfaceHover text-muted-foreground'
-        }`}
+      </Button>
+      <Button
+        variant={activePeriod === 'week' ? 'default' : 'ghost'}
+        className="rounded-none h-8 px-3"
         onClick={() => onChange('week')}
+        size="sm"
       >
         Week
-      </button>
-      <button 
-        className={`px-3 py-1 text-xs rounded-full transition-colors ${
-          activePeriod === 'month' 
-            ? 'bg-primary text-white' 
-            : 'hover:bg-surfaceHover text-muted-foreground'
-        }`}
+      </Button>
+      <Button
+        variant={activePeriod === 'month' ? 'default' : 'ghost'}
+        className="rounded-none h-8 px-3"
         onClick={() => onChange('month')}
+        size="sm"
       >
         Month
-      </button>
+      </Button>
     </div>
   );
 };

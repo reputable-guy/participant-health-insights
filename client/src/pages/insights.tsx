@@ -68,6 +68,9 @@ const Insights = () => {
 
   // Get completion date (for demo, we'll use current date minus 5 days)
   const completionDate = format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMMM d, yyyy');
+  
+  // State for time period selection in Progress Over Time chart
+  const [activePeriod, setActivePeriod] = useState<'day' | 'week' | 'month'>('week');
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
