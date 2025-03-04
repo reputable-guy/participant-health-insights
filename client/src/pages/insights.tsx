@@ -139,13 +139,15 @@ const Insights = () => {
             </CategoryHeader>
             
             {/* Your Progress Over Time */}
-            <h2 className="text-xl font-bold mt-8 mb-4">Your Progress Over Time</h2>
-            <TimeSeriesChart 
-              title="Metrics Trends" 
-              metrics={allMetrics.filter(m => Math.abs(m.percentChange) > 5).slice(0, 3)} 
-              activePeriod={activePeriod}
-              onPeriodChange={setActivePeriod}
-            />
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Your Progress Over Time</h2>
+              <TimeSeriesChart 
+                title={primaryMetric ? `${primaryMetric.name} Trend` : "Deep Sleep Trend"} 
+                metrics={primaryMetric ? [primaryMetric] : (sleepCategory?.metrics ? [sleepCategory.metrics[0]] : [])} 
+                activePeriod={activePeriod}
+                onPeriodChange={setActivePeriod}
+              />
+            </div>
             
             {/* Removed Study Impact Section as requested */}
           </>
