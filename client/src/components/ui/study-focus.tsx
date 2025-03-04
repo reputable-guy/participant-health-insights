@@ -230,14 +230,6 @@ const StudyFocus = ({
             </p>
           </div>
           
-          {/* Change over time */}
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">Your Progress Over Time</h4>
-            <div className="h-20">
-              <MiniChart data={primaryMetric.historicalData} color="var(--primary)" />
-            </div>
-          </div>
-          
           <Separator className="my-4" />
           
           {/* Results Summary */}
