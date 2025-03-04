@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Moon, ActivityIcon, Heart, Wind, Diamond, Sparkles } from "lucide-react";
+import { Moon, ActivityIcon, Heart, Diamond, Sparkles } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
 import CorrelationCard from "@/components/ui/correlation-card";
-import { HealthData, TimePeriod } from "@/lib/types";
+import StudyFocus from "@/components/ui/study-focus";
+import KeyChanges from "@/components/ui/key-changes";
+import { HealthData } from "@/lib/types";
 
 const Insights = () => {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('day');
   const [activeCategory, setActiveCategory] = useState('overview');
   
   const { data, isLoading, error } = useQuery({
-    queryKey: [`/api/health-data?period=${timePeriod}`],
+    queryKey: [`/api/health-data`],
   });
 
   if (isLoading) {
@@ -46,23 +47,91 @@ const Insights = () => {
   const cardiovascularCategory = healthData?.categories.find(cat => cat.id === 'cardiovascular');
   const stressCategory = healthData?.categories.find(cat => cat.id === 'stress');
 
+  // Identify primary metric for study focus
+  // For this example, we're using Deep Sleep as the primary metric
+  const primaryMetric = sleepCategory?.metrics.find(m => m.name === 'Deep Sleep');
+
+  // Combine all metrics into a single array for key changes section
+  const allMetrics = [
+    ...(sleepCategory?.metrics || []),
+    ...(activityCategory?.metrics || []),
+    ...(cardiovascularCategory?.metrics || []),
+    ...(stressCategory?.metrics || [])
+  ];
+
   return (
     <div className="flex flex-col min-h-screen pb-16">
       <AppHeader 
         studyInfo={healthData.studyInfo}
-        timePeriod={timePeriod}
-        onTimePeriodChange={setTimePeriod}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
       />
       
-      <main className="p-4 space-y-4">
+      <main className="p-4 space-y-6">
+        {/* Overview Section */}
+        {activeCategory === 'overview' && (
+          <>
+            {/* Study Focus Section */}
+            {primaryMetric && (
+              <StudyFocus 
+                studyName={healthData.studyInfo.studyName}
+                primaryMetric={primaryMetric}
+                hypothesis="Using an acupressure mat for 20 minutes before bedtime will increase deep sleep duration by at least 30%."
+                goalValue={2.2} // Target deep sleep hours
+                significance={0.031} // p-value
+              />
+            )}
+            
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-primary/5 rounded-lg p-3">
+                <h3 className="text-sm font-medium mb-1">Study Duration</h3>
+                <p className="text-xl font-semibold">{healthData.studyInfo.totalDays} Days</p>
+              </div>
+              <div className="bg-primary/5 rounded-lg p-3">
+                <h3 className="text-sm font-medium mb-1">Key Findings</h3>
+                <p className="text-xl font-semibold">{allMetrics.filter(m => Math.abs(m.percentChange) > 5).length}</p>
+              </div>
+            </div>
+            
+            {/* Top Categories */}
+            <div className="space-y-4">
+              {sleepCategory && (
+                <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
+                  <div className="space-y-3">
+                    {sleepCategory.metrics.slice(0, 2).map(metric => (
+                      <MetricCard key={metric.id} metric={metric} />
+                    ))}
+                  </div>
+                </CategoryHeader>
+              )}
+              
+              {activityCategory && (
+                <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
+                  <div className="space-y-3">
+                    <MetricCard metric={activityCategory.metrics[0]} />
+                  </div>
+                </CategoryHeader>
+              )}
+            </div>
+            
+            {/* Correlations Section */}
+            <CategoryHeader title="Key Correlations" icon={<Sparkles className="h-5 w-5" />}>
+              {healthData.correlationFactors.map(factor => (
+                <CorrelationCard key={factor.id} factor={factor} />
+              ))}
+            </CategoryHeader>
+          </>
+        )}
+        
+        {/* Key Changes Section */}
+        {activeCategory === 'key-changes' && (
+          <KeyChanges metrics={allMetrics} />
+        )}
+        
         {/* Sleep Section */}
-        {(activeCategory === 'overview' || activeCategory === 'sleep') && sleepCategory && (
-          <CategoryHeader 
-            title="Sleep" 
-            icon={<Moon className="h-5 w-5" />}
-          >
+        {activeCategory === 'sleep' && sleepCategory && (
+          <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
               {sleepCategory.metrics.slice(0, 2).map(metric => (
@@ -80,11 +149,8 @@ const Insights = () => {
         )}
         
         {/* Activity Section */}
-        {(activeCategory === 'overview' || activeCategory === 'activity') && activityCategory && (
-          <CategoryHeader 
-            title="Activity" 
-            icon={<ActivityIcon className="h-5 w-5" />}
-          >
+        {activeCategory === 'activity' && activityCategory && (
+          <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
               <MetricCard metric={activityCategory.metrics[0]} />
@@ -100,11 +166,8 @@ const Insights = () => {
         )}
         
         {/* Cardiovascular Health */}
-        {(activeCategory === 'overview' || activeCategory === 'heart') && cardiovascularCategory && (
-          <CategoryHeader 
-            title="Cardiovascular Health" 
-            icon={<Heart className="h-5 w-5" />}
-          >
+        {activeCategory === 'heart' && cardiovascularCategory && (
+          <CategoryHeader title="Cardiovascular Health" icon={<Heart className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
               <MetricCard metric={cardiovascularCategory.metrics[0]} />
@@ -120,11 +183,8 @@ const Insights = () => {
         )}
         
         {/* Stress & Recovery */}
-        {(activeCategory === 'overview' || activeCategory === 'stress') && stressCategory && (
-          <CategoryHeader 
-            title="Stress & Recovery" 
-            icon={<Diamond className="h-5 w-5" />}
-          >
+        {activeCategory === 'stress' && stressCategory && (
+          <CategoryHeader title="Stress & Recovery" icon={<Diamond className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
               <MetricCard metric={stressCategory.metrics[0]} />
@@ -136,18 +196,6 @@ const Insights = () => {
                 ))}
               </div>
             </div>
-          </CategoryHeader>
-        )}
-        
-        {/* Correlations Section */}
-        {(activeCategory === 'overview') && (
-          <CategoryHeader 
-            title="Factors & Correlations" 
-            icon={<Sparkles className="h-5 w-5" />}
-          >
-            {healthData.correlationFactors.map(factor => (
-              <CorrelationCard key={factor.id} factor={factor} />
-            ))}
           </CategoryHeader>
         )}
       </main>
