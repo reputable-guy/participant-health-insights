@@ -10,12 +10,14 @@ import KeyChanges from "@/components/ui/key-changes";
 import StudyImpact from "@/components/ui/study-impact";
 import PeerComparison from "@/components/ui/peer-comparison";
 import AskQuestions from "@/components/ui/ask-questions";
-import { HealthData } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { HealthData, MetricData } from "@/lib/types";
 import { format } from "date-fns";
 
 const Insights = () => {
   const [activeCategory, setActiveCategory] = useState('overview');
   const [comparisonFilter, setComparisonFilter] = useState("All Participants");
+  const [selectedMetric, setPrimaryMetric] = useState<MetricData | null>(null);
   
   const { data, isLoading, error } = useQuery({
     queryKey: [`/api/health-data`],
@@ -133,13 +135,7 @@ const Insights = () => {
               ))}
             </CategoryHeader>
             
-            {/* Study Impact Section */}
-            <StudyImpact 
-              totalParticipants={157}
-              participantRank={22}
-              studyName={healthData.studyInfo.studyName}
-              completionDate={completionDate}
-            />
+            {/* Removed Study Impact Section as requested */}
           </>
         )}
         
@@ -167,14 +163,30 @@ const Insights = () => {
               </div>
             </CategoryHeader>
             
-            {/* Peer Comparison for primary sleep metric */}
-            {primaryMetric && (
-              <PeerComparison 
-                metric={primaryMetric} 
-                activeFilter={comparisonFilter}
-                onFilterChange={setComparisonFilter}
-              />
-            )}
+            {/* Peer Comparison for any selected sleep metric */}
+            <div className="my-6">
+              <h3 className="text-base font-medium mb-3">Compare With Others</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {sleepCategory.metrics.map(metric => (
+                  <Button
+                    key={metric.id}
+                    variant={primaryMetric && primaryMetric.id === metric.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPrimaryMetric(metric)}
+                    className="text-xs h-7"
+                  >
+                    {metric.name}
+                  </Button>
+                ))}
+              </div>
+              {primaryMetric && (
+                <PeerComparison 
+                  metric={primaryMetric} 
+                  activeFilter={comparisonFilter}
+                  onFilterChange={setComparisonFilter}
+                />
+              )}
+            </div>
           </>
         )}
         

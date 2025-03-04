@@ -175,7 +175,7 @@ const PeerComparison = ({
                 <Bar 
                   dataKey="value" 
                   fill="var(--muted)"
-                  radius={[4, 4, 0, 0]}
+                  radius={4}
                   // Use the shape prop for custom coloring
                   shape={(props: any) => {
                     const { x, y, width, height, value, payload } = props;
@@ -187,7 +187,8 @@ const PeerComparison = ({
                         width={width} 
                         height={height} 
                         fill={fill} 
-                        radius={[4, 4, 0, 0]}
+                        rx={4}
+                        ry={4}
                       />
                     );
                   }}
