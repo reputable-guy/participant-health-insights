@@ -235,6 +235,9 @@ const Insights = () => {
                 <Button size="sm" variant="outline" onClick={() => setActiveCategory('stress')} className="flex gap-2 items-center">
                   <Diamond className="h-4 w-4" /> Stress
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('surveys')} className="flex gap-2 items-center">
+                  <ClipboardList className="h-4 w-4" /> Surveys
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setActiveCategory('other-factors')} className="flex gap-2 items-center">
                   <Sparkles className="h-4 w-4" /> Other Factors
                 </Button>
