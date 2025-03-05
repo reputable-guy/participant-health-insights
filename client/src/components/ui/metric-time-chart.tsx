@@ -75,36 +75,56 @@ const MetricTimeChart: FC<MetricTimeChartProps> = ({ metric, activePeriod }) => 
           </linearGradient>
         </defs>
         
+        {/* Main line with gradient color */}
         <Line 
           type="monotone" 
           dataKey="value" 
           stroke="url(#colorGradient)" 
           strokeWidth={2}
-          dot={(props) => {
-            const { cx, cy, payload } = props;
-            if (cx && cy && payload) {
-              const fill = payload.phase === "pre" ? "#888" : "#4264fb";
-              return <circle cx={cx} cy={cy} r={5} fill={fill} />;
-            }
-            return null;
-          }}
+          dot={false}
           activeDot={{ r: 8 }}
           name={metric.name}
         />
         
+        {/* Pre-study dots (gray) */}
+        <Line 
+          type="monotone"
+          dataKey="value"
+          data={timeSeriesData.filter(d => d.phase === "pre")}
+          stroke="none"
+          dot={{ fill: "#888", r: 5 }}
+          activeDot={false}
+          name="Pre-study"
+        />
+        
+        {/* During-study dots (blue) */}
+        <Line 
+          type="monotone"
+          dataKey="value"
+          data={timeSeriesData.filter(d => d.phase === "during")}
+          stroke="none"
+          dot={{ fill: "#4264fb", r: 5 }}
+          activeDot={false}
+          name="During-study"
+        />
+        
         {/* Legend items */}
-        <Legend content={() => (
-          <div className="flex flex-col items-start text-sm mt-2">
-            <div className="flex items-center mb-1">
-              <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-              <span>Pre-study baseline</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
-              <span>{metric.name}</span>
-            </div>
-          </div>
-        )} />
+        <Legend
+          content={() => {
+            return (
+              <div className="flex flex-col items-start text-sm mt-2">
+                <div className="flex items-center mb-1">
+                  <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                  <span>Pre-study baseline</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                  <span>{metric.name}</span>
+                </div>
+              </div>
+            );
+          }}
+        />
       </LineChart>
     </ResponsiveContainer>
   );

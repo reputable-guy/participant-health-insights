@@ -1,9 +1,9 @@
-import { FC } from 'react';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import { MetricData, TimePeriod } from '@/lib/types';
-import { calculateBaselineValue, getMetricInterpretation, getTrendInterpretation } from '@/lib/ui-utils';
-import MetricTimeChart from '@/components/ui/metric-time-chart';
+import { FC } from "react";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import MetricTimeChart from "@/components/ui/metric-time-chart";
+import TimePeriodSelector from "@/components/ui/time-period-selector";
+import { MetricData, TimePeriod } from "@/lib/types";
 
 interface MetricDetailModalProps {
   metric: MetricData;
@@ -21,8 +21,9 @@ const MetricDetailModal: FC<MetricDetailModalProps> = ({
   onPeriodChange,
   onClose
 }) => {
-  const baselineValue = calculateBaselineValue(metric.value, metric.percentChange);
-  
+  // Calculate baseline value
+  const baselineValue = Number(metric.value - (metric.value * metric.percentChange / 100)).toFixed(1);
+
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
       <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -54,60 +55,31 @@ const MetricDetailModal: FC<MetricDetailModalProps> = ({
             <div className="bg-muted/30 p-4 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">Baseline Value</div>
               <div className="text-2xl font-bold">
-                {baselineValue.toFixed(1)} {metric.unit}
+                {baselineValue} {metric.unit}
               </div>
             </div>
           </div>
           
           {/* Time period selector */}
           <div className="flex justify-end">
-            <div className="inline-flex rounded-md shadow-sm">
-              <Button
-                variant={activePeriod === 'day' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onPeriodChange('day')}
-                className={`rounded-l-md rounded-r-none ${activePeriod === 'day' ? '' : 'text-muted-foreground'}`}
-              >
-                Daily
-              </Button>
-              <Button
-                variant={activePeriod === 'week' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onPeriodChange('week')}
-                className={`rounded-none border-l-0 border-r-0 ${activePeriod === 'week' ? '' : 'text-muted-foreground'}`}
-              >
-                Weekly
-              </Button>
-              <Button
-                variant={activePeriod === 'month' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onPeriodChange('month')}
-                className={`rounded-r-md rounded-l-none ${activePeriod === 'month' ? '' : 'text-muted-foreground'}`}
-              >
-                Monthly
-              </Button>
-            </div>
+            <TimePeriodSelector 
+              activePeriod={activePeriod}
+              onChange={onPeriodChange}
+            />
           </div>
           
-          {/* Main chart area using Recharts */}
+          {/* Main chart area using our custom component */}
           <div className="border border-border rounded-lg p-4 h-[350px] bg-card">
             <div className="h-full flex flex-col">
-              <div className="text-sm font-medium mb-2 flex items-center justify-between">
-                <div>{metric.name} Progress Over Time</div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-                    <span>Pre-study</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                    <span>During study</span>
-                  </div>
-                </div>
+              <div className="text-sm font-medium mb-2">
+                {metric.name} Progress Over Time
               </div>
               
               <div className="h-full w-full">
-                <MetricTimeChart metric={metric} activePeriod={activePeriod} />
+                <MetricTimeChart 
+                  metric={metric}
+                  activePeriod={activePeriod}
+                />
               </div>
             </div>
           </div>
@@ -116,11 +88,23 @@ const MetricDetailModal: FC<MetricDetailModalProps> = ({
           <div className="bg-muted/30 p-4 rounded-lg">
             <h3 className="font-medium mb-2">Data Interpretation</h3>
             <p className="text-sm text-muted-foreground mb-2">
-              {getMetricInterpretation(metric)}
+              {metric.percentChange > 15 ? 
+                `Your ${metric.name.toLowerCase()} showed significant improvement during the study, with a ${metric.percentChange.toFixed(1)}% increase from your baseline measurements.` :
+                metric.percentChange > 0 ?
+                `Your ${metric.name.toLowerCase()} showed moderate improvement during the study, with a ${metric.percentChange.toFixed(1)}% increase from your baseline.` :
+                metric.percentChange < 0 ?
+                `Your ${metric.name.toLowerCase()} decreased by ${Math.abs(metric.percentChange).toFixed(1)}% during the study period.` :
+                `Your ${metric.name.toLowerCase()} remained stable throughout the study period.`
+              }
             </p>
             <p className="text-sm text-muted-foreground">
-              The chart above shows your measurements before the study began (gray) compared to during the study period (colored). 
-              The trend indicates {getTrendInterpretation(metric.percentChange)}
+              The chart above shows your measurements before the study began (gray) compared to during the study period (colored). The trend indicates 
+              {metric.percentChange > 0 
+                ? " a positive response to the intervention."
+                : metric.percentChange < 0
+                ? " a potential area for further investigation."
+                : " consistent values throughout the measurement period."
+              }
             </p>
           </div>
         </div>

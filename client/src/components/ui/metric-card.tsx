@@ -3,46 +3,35 @@ import MiniChart from "./mini-chart";
 import TooltipInfo from "./tooltip-info";
 import { MetricData } from "@/lib/types";
 import MetricProgress from "./metric-progress";
+import { getProgressColor, getProgressWidth, getStatusColor } from "@/lib/ui-utils";
 
 interface MetricCardProps {
   metric: MetricData;
   compact?: boolean;
+  onClick?: () => void;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'success':
-      return 'text-[#4CAF50]';
-    case 'warning':
-      return 'text-[#FF9800]';
-    case 'danger':
-      return 'text-[#F44336]';
-    default:
-      return 'text-[#4CAF50]';
-  }
-};
-
-const getProgressColor = (status: string) => {
-  switch (status) {
-    case 'success':
-      return 'bg-[#4CAF50]';
-    case 'warning':
-      return 'bg-[#FF9800]';
-    case 'danger':
-      return 'bg-[#F44336]';
-    default:
-      return 'bg-[#4CAF50]';
-  }
-};
-
-const MetricCard = ({ metric, compact = false }: MetricCardProps) => {
+/**
+ * Card component displaying key metric information
+ * Used in both regular and compact versions
+ */
+const MetricCard = ({ metric, compact = false, onClick }: MetricCardProps) => {
   const statusColor = getStatusColor(metric.status);
   const progressColor = getProgressColor(metric.status);
-  const progressWidth = Math.min(Math.abs(metric.percentChange) * 5 + 50, 95);
+  const progressWidth = getProgressWidth(metric.percentChange);
+  
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
   
   if (compact) {
     return (
-      <div className="bg-surface rounded-xl p-3">
+      <div 
+        className="bg-surface rounded-xl p-3 transition-all hover:shadow-md cursor-pointer"
+        onClick={handleClick}
+      >
         <div className="flex justify-between items-center mb-1">
           <div className="flex items-center">
             <h3 className="text-sm font-medium">{metric.name}</h3>
@@ -64,7 +53,10 @@ const MetricCard = ({ metric, compact = false }: MetricCardProps) => {
   }
   
   return (
-    <div className="bg-surface rounded-xl p-4">
+    <div 
+      className="bg-surface rounded-xl p-4 transition-all hover:shadow-md cursor-pointer"
+      onClick={handleClick}
+    >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
           <h3 className="font-medium">{metric.name}</h3>

@@ -9,30 +9,30 @@ interface TimePeriodSelectorProps {
 
 const TimePeriodSelector: FC<TimePeriodSelectorProps> = ({ activePeriod, onChange }) => {
   return (
-    <div className="flex gap-0.5 rounded-md overflow-hidden border">
+    <div className="inline-flex rounded-md shadow-sm">
       <Button
-        variant={activePeriod === 'day' ? 'default' : 'ghost'}
-        className="rounded-none h-8 px-3"
+        variant={activePeriod === 'day' ? 'default' : 'outline'}
+        size="sm"
         onClick={() => onChange('day')}
-        size="sm"
+        className={`rounded-l-md rounded-r-none ${activePeriod === 'day' ? '' : 'text-muted-foreground'}`}
       >
-        Day
+        Daily
       </Button>
       <Button
-        variant={activePeriod === 'week' ? 'default' : 'ghost'}
-        className="rounded-none h-8 px-3"
+        variant={activePeriod === 'week' ? 'default' : 'outline'}
+        size="sm"
         onClick={() => onChange('week')}
-        size="sm"
+        className={`rounded-none border-l-0 border-r-0 ${activePeriod === 'week' ? '' : 'text-muted-foreground'}`}
       >
-        Week
+        Weekly
       </Button>
       <Button
-        variant={activePeriod === 'month' ? 'default' : 'ghost'}
-        className="rounded-none h-8 px-3"
-        onClick={() => onChange('month')}
+        variant={activePeriod === 'month' ? 'default' : 'outline'}
         size="sm"
+        onClick={() => onChange('month')}
+        className={`rounded-r-md rounded-l-none ${activePeriod === 'month' ? '' : 'text-muted-foreground'}`}
       >
-        Month
+        Monthly
       </Button>
     </div>
   );

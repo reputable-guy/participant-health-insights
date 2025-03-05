@@ -14,9 +14,12 @@ import AskQuestions from "@/components/ui/ask-questions";
 import TimeSeriesChart from "@/components/ui/time-series-chart";
 import MiniChart from "@/components/ui/mini-chart";
 import SurveyCard from "@/components/ui/survey-card";
+import MetricTimeChart from "@/components/ui/metric-time-chart";
+import MetricDetailModal from "@/components/metric-detail-modal";
+import TimePeriodSelector from "@/components/ui/time-period-selector";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { HealthData, MetricData } from "@/lib/types";
+import { HealthData, MetricData, TimePeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { psqiSurveyData, sf36SurveyData } from "@/lib/mock-survey-data";
 
@@ -178,195 +181,14 @@ const Insights = () => {
       </div>
       
       <main className="p-4 space-y-6">
-        {/* Metric Details with Progress Chart */}
+        {/* Metric Details with Progress Chart using dedicated component */}
         {viewingMetricChart && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 space-y-6">
-                {/* Header with close button */}
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">{viewingMetricChart.name} Progress</h2>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setViewingMetricChart(null)}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-                
-                {/* Metrics at a glance */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Current Value</div>
-                    <div className="text-2xl font-bold">{viewingMetricChart.value} {viewingMetricChart.unit}</div>
-                  </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Change</div>
-                    <div className={`text-2xl font-bold ${viewingMetricChart.percentChange > 0 ? 'text-green-500' : viewingMetricChart.percentChange < 0 ? 'text-red-500' : ''}`}>
-                      {viewingMetricChart.percentChange > 0 ? '+' : ''}{viewingMetricChart.percentChange.toFixed(1)}%
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Baseline Value</div>
-                    <div className="text-2xl font-bold">
-                      {Number(viewingMetricChart.value - (viewingMetricChart.value * viewingMetricChart.percentChange / 100)).toFixed(1)} {viewingMetricChart.unit}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Time period selector */}
-                <div className="flex justify-end">
-                  <div className="inline-flex rounded-md shadow-sm">
-                    <Button
-                      variant={activePeriod === 'day' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setActivePeriod('day')}
-                      className={`rounded-l-md rounded-r-none ${activePeriod === 'day' ? '' : 'text-muted-foreground'}`}
-                    >
-                      Daily
-                    </Button>
-                    <Button
-                      variant={activePeriod === 'week' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setActivePeriod('week')}
-                      className={`rounded-none border-l-0 border-r-0 ${activePeriod === 'week' ? '' : 'text-muted-foreground'}`}
-                    >
-                      Weekly
-                    </Button>
-                    <Button
-                      variant={activePeriod === 'month' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setActivePeriod('month')}
-                      className={`rounded-r-md rounded-l-none ${activePeriod === 'month' ? '' : 'text-muted-foreground'}`}
-                    >
-                      Monthly
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Main chart area using Recharts */}
-                <div className="border border-border rounded-lg p-4 h-[350px] bg-card">
-                  <div className="h-full flex flex-col">
-                    <div className="text-sm font-medium mb-2 flex items-center justify-between">
-                      <div>{viewingMetricChart.name} Progress Over Time</div>
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-                          <span>Pre-study</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                          <span>During study</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="h-full w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                          data={[
-                            { time: "3 weeks before", value: Math.round(viewingMetricChart.value * 0.7), phase: "pre" },
-                            { time: "2 weeks before", value: Math.round(viewingMetricChart.value * 0.75), phase: "pre" },
-                            { time: "1 week before", value: Math.round(viewingMetricChart.value * 0.8), phase: "pre" },
-                            { time: "Study week 1", value: Math.round(viewingMetricChart.value * 0.85), phase: "during" },
-                            { time: "Study week 2", value: Math.round(viewingMetricChart.value * 0.92), phase: "during" },
-                            { time: "Study week 3", value: Math.round(viewingMetricChart.value * 0.96), phase: "during" },
-                            { time: "Study end", value: viewingMetricChart.value, phase: "during" }
-                          ]}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                          <XAxis 
-                            dataKey="time"
-                            tick={{ fontSize: 12 }}
-                            tickMargin={10}
-                          />
-                          <YAxis 
-                            domain={[0, Math.ceil(viewingMetricChart.value * 1.2)]}
-                            tickFormatter={(value) => `${value}${viewingMetricChart.unit}`}
-                            label={{ value: `${viewingMetricChart.unit}`, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
-                          />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: "#111", borderColor: "#333" }}
-                            formatter={(value) => [`${value} ${viewingMetricChart.unit}`, viewingMetricChart.name]}
-                            labelFormatter={(label) => `Time: ${label}`}
-                          />
-                          
-                          {/* Study start reference line */}
-                          <ReferenceLine x="Study week 1" stroke="#666" strokeDasharray="3 3">
-                            <Label value="Study Start" position="top" fill="#888" />
-                          </ReferenceLine>
-                          
-                          {/* Single line with different colors for pre and during study */}
-                          <defs>
-                            <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
-                              <stop offset="0%" stopColor="#888" />
-                              <stop offset="42.8%" stopColor="#888" /> {/* 3/7 (3 pre-study points out of 7 total) */}
-                              <stop offset="42.81%" stopColor="#4264fb" />
-                              <stop offset="100%" stopColor="#4264fb" />
-                            </linearGradient>
-                          </defs>
-                          
-                          <Line 
-                            type="monotone" 
-                            dataKey="value" 
-                            stroke="url(#colorGradient)" 
-                            strokeWidth={2}
-                            dot={(props) => {
-                              const { cx, cy, payload } = props;
-                              const fill = payload.phase === "pre" ? "#888" : "#4264fb";
-                              return <circle cx={cx} cy={cy} r={5} fill={fill} />;
-                            }}
-                            activeDot={{ r: 8 }}
-                            name={viewingMetricChart.name}
-                          />
-                          
-                          {/* Legend items */}
-                          <Legend content={() => (
-                            <div className="flex flex-col items-start text-sm mt-2">
-                              <div className="flex items-center mb-1">
-                                <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-                                <span>Pre-study baseline</span>
-                              </div>
-                              <div className="flex items-center">
-                                <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                                <span>{viewingMetricChart.name}</span>
-                              </div>
-                            </div>
-                          )} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Interpretation of data */}
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <h3 className="font-medium mb-2">Data Interpretation</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {viewingMetricChart.percentChange > 15 ? 
-                      `Your ${viewingMetricChart.name.toLowerCase()} showed significant improvement during the study, with a ${viewingMetricChart.percentChange.toFixed(1)}% increase from your baseline measurements.` :
-                      viewingMetricChart.percentChange > 0 ?
-                      `Your ${viewingMetricChart.name.toLowerCase()} showed moderate improvement during the study, with a ${viewingMetricChart.percentChange.toFixed(1)}% increase from your baseline.` :
-                      viewingMetricChart.percentChange < 0 ?
-                      `Your ${viewingMetricChart.name.toLowerCase()} decreased by ${Math.abs(viewingMetricChart.percentChange).toFixed(1)}% during the study period.` :
-                      `Your ${viewingMetricChart.name.toLowerCase()} remained stable throughout the study period.`
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    The chart above shows your measurements before the study began (gray) compared to during the study period (colored). The trend indicates 
-                    {viewingMetricChart.percentChange > 0 
-                      ? " a positive response to the intervention."
-                      : viewingMetricChart.percentChange < 0
-                      ? " a potential area for further investigation."
-                      : " consistent values throughout the measurement period."
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MetricDetailModal
+            metric={viewingMetricChart}
+            activePeriod={activePeriod}
+            onPeriodChange={setActivePeriod}
+            onClose={() => setViewingMetricChart(null)}
+          />
         )}
         {/* Overview Section */}
         {activeCategory === 'overview' && (
