@@ -55,10 +55,10 @@ const AppHeader = ({
           Overview
         </button>
         <button 
-          className={`pb-2 mr-6 ${activeCategory === 'key-changes' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
-          onClick={() => onCategoryChange('key-changes')}
+          className={`pb-2 mr-6 ${activeCategory === 'other-factors' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
+          onClick={() => onCategoryChange('other-factors')}
         >
-          Key Changes
+          Other Factors
         </button>
         <button 
           className={`pb-2 mr-6 ${activeCategory === 'sleep' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
