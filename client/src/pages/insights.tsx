@@ -265,34 +265,53 @@ const Insights = () => {
                     {/* Chart visualization */}
                     <div className="flex-grow relative">
                       {/* Simulated chart - for demonstration */}
-                      <div className="absolute inset-0 flex items-end">
-                        {/* Pre-study data points (lighter color) */}
-                        {Array.from({length: 10}).map((_, i) => (
-                          <div key={`pre-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
-                            <div 
-                              className="bg-gray-400/60 w-full rounded-t" 
-                              style={{
-                                height: `${Math.max(15, 20 + Math.random() * 35)}%`,
-                              }}
-                            ></div>
-                          </div>
-                        ))}
-                        
-                        {/* Study data points (primary color, showing improvement trend) */}
-                        {Array.from({length: 10}).map((_, i) => (
-                          <div key={`study-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
-                            <div 
-                              className="bg-primary w-full rounded-t" 
-                              style={{
-                                height: `${Math.max(25, 30 + i * 4 + Math.random() * 10)}%`,
-                              }}
-                            ></div>
-                          </div>
-                        ))}
+                      <div className="absolute inset-0 flex items-end pl-12 pr-4"> {/* Added padding to account for y-axis labels */}
+                        {/* Container for pre-study data */}
+                        <div className="flex-1 flex items-end gap-1 border-b border-muted h-full">
+                          {/* Pre-study data points (lighter color) */}
+                          {Array.from({length: 10}).map((_, i) => {
+                            // Calculate a height between 15% and 50% with some randomness but slight upward trend
+                            const heightPercent = Math.max(15, Math.min(50, 20 + i * 1.5 + Math.random() * 15));
+                            return (
+                              <div key={`pre-${i}`} className="flex-1 flex flex-col justify-end">
+                                <div 
+                                  className="bg-gray-400/60 w-full rounded-t transition-all duration-300" 
+                                  style={{
+                                    height: `${heightPercent}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Study data points (primary color, showing improvement trend) */}
+                          {Array.from({length: 10}).map((_, i) => {
+                            // Calculate a height between 30% and 80% with clear upward trend for study data
+                            const heightPercent = Math.max(30, Math.min(80, 35 + i * 4 + Math.random() * 5));
+                            return (
+                              <div key={`study-${i}`} className="flex-1 flex flex-col justify-end">
+                                <div 
+                                  className="bg-primary w-full rounded-t transition-all duration-300" 
+                                  style={{
+                                    height: `${heightPercent}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      {/* Grid lines */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pl-12">
+                        <div className="border-b border-gray-800/30 h-1/4"></div>
+                        <div className="border-b border-gray-800/30 h-1/4"></div>
+                        <div className="border-b border-gray-800/30 h-1/4"></div>
+                        <div className="border-b border-gray-800/30 h-1/4"></div>
                       </div>
                       
                       {/* Y-axis labels */}
-                      <div className="absolute left-0 inset-y-0 w-12 flex flex-col justify-between text-xs text-muted-foreground">
+                      <div className="absolute left-0 inset-y-0 w-12 flex flex-col justify-between text-xs text-muted-foreground py-2">
                         <div>100%</div>
                         <div>75%</div>
                         <div>50%</div>
