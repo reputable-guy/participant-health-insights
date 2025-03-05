@@ -18,9 +18,9 @@ const AppHeader = ({
     <div className="sticky top-0 z-50 bg-background">
       <header className="flex justify-between items-center p-4 border-b border-gray-800">
         <div className="flex items-center">
-          <button className="w-8 h-8 rounded-full bg-surface flex items-center justify-center mr-4">
+          <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center mr-4">
             <User className="h-5 w-5 text-foreground" />
-          </button>
+          </div>
           <div className="flex items-center">
             <img 
               src="https://img.icons8.com/fluency/48/000000/sleeping-pill.png" 
@@ -30,9 +30,6 @@ const AppHeader = ({
             <h1 className="ml-2 text-lg font-semibold">{studyInfo.studyName}</h1>
           </div>
         </div>
-        <button>
-          <ChevronLeft className="h-6 w-6 text-foreground" />
-        </button>
       </header>
       
       {/* Study Results Banner */}
