@@ -266,55 +266,75 @@ const Insights = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                          data={[
+                            { time: "3 weeks before", value: Math.round(viewingMetricChart.value * 0.7), phase: "pre" },
+                            { time: "2 weeks before", value: Math.round(viewingMetricChart.value * 0.75), phase: "pre" },
+                            { time: "1 week before", value: Math.round(viewingMetricChart.value * 0.8), phase: "pre" },
+                            { time: "Study week 1", value: Math.round(viewingMetricChart.value * 0.85), phase: "during" },
+                            { time: "Study week 2", value: Math.round(viewingMetricChart.value * 0.92), phase: "during" },
+                            { time: "Study week 3", value: Math.round(viewingMetricChart.value * 0.96), phase: "during" },
+                            { time: "Study end", value: viewingMetricChart.value, phase: "during" }
+                          ]}
                         >
-                          <CartesianGrid strokeDasharray="3 3" />
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                           <XAxis 
-                            dataKey="name"
+                            dataKey="time"
                             tick={{ fontSize: 12 }}
                             tickMargin={10}
                           />
                           <YAxis 
-                            domain={[0, 'auto']}
+                            domain={[0, Math.ceil(viewingMetricChart.value * 1.2)]}
                             tickFormatter={(value) => `${value}${viewingMetricChart.unit}`}
+                            label={{ value: `${viewingMetricChart.unit}`, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
                           />
                           <Tooltip 
                             contentStyle={{ backgroundColor: "#111", borderColor: "#333" }}
-                            formatter={(value, name) => [`${value} ${viewingMetricChart.unit}`, name]}
+                            formatter={(value) => [`${value} ${viewingMetricChart.unit}`, viewingMetricChart.name]}
+                            labelFormatter={(label) => `Time: ${label}`}
                           />
-                          <Legend />
                           
-                          {/* Pre-study data */}
-                          <Line
-                            data={[
-                              { name: "4 weeks before", value: Math.round(viewingMetricChart.value * 0.7) },
-                              { name: "3 weeks before", value: Math.round(viewingMetricChart.value * 0.73) },
-                              { name: "2 weeks before", value: Math.round(viewingMetricChart.value * 0.78) }
-                            ]}
-                            name="Pre-study baseline"
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#888"
+                          {/* Study start reference line */}
+                          <ReferenceLine x="Study week 1" stroke="#666" strokeDasharray="3 3">
+                            <Label value="Study Start" position="top" fill="#888" />
+                          </ReferenceLine>
+                          
+                          {/* Single line with different colors for pre and during study */}
+                          <defs>
+                            <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
+                              <stop offset="0%" stopColor="#888" />
+                              <stop offset="42.8%" stopColor="#888" /> {/* 3/7 (3 pre-study points out of 7 total) */}
+                              <stop offset="42.81%" stopColor="#4264fb" />
+                              <stop offset="100%" stopColor="#4264fb" />
+                            </linearGradient>
+                          </defs>
+                          
+                          <Line 
+                            type="monotone" 
+                            dataKey="value" 
+                            stroke="url(#colorGradient)" 
                             strokeWidth={2}
+                            dot={(props) => {
+                              const { cx, cy, payload } = props;
+                              const fill = payload.phase === "pre" ? "#888" : "#4264fb";
+                              return <circle cx={cx} cy={cy} r={5} fill={fill} />;
+                            }}
                             activeDot={{ r: 8 }}
+                            name={viewingMetricChart.name}
                           />
                           
-                          {/* During study data */}
-                          <Line
-                            data={[
-                              { name: "Study week 1", value: Math.round(viewingMetricChart.value * 0.85) },
-                              { name: "Study week 2", value: Math.round(viewingMetricChart.value * 0.9) },
-                              { name: "Study week 3", value: Math.round(viewingMetricChart.value * 0.95) },
-                              { name: "Study end", value: viewingMetricChart.value }
-                            ]}
-                            name={`${viewingMetricChart.name}`}
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#4264fb"
-                            strokeWidth={2}
-                            activeDot={{ r: 8 }}
-                          />
-                          
-                          <ReferenceLine x="Study week 1" stroke="#666" label={{ value: 'Study Start', position: 'insideTopRight' }} />
+                          {/* Legend items */}
+                          <Legend content={() => (
+                            <div className="flex flex-col items-start text-sm mt-2">
+                              <div className="flex items-center mb-1">
+                                <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                                <span>Pre-study baseline</span>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                                <span>{viewingMetricChart.name}</span>
+                              </div>
+                            </div>
+                          )} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
