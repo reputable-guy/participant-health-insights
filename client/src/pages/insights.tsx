@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Moon, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight } from "lucide-react";
+import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
@@ -93,7 +93,7 @@ const Insights = () => {
 
   // Identify primary metric for study focus
   // For this example, we're using Deep Sleep as the primary metric
-  const primaryMetric = sleepCategory?.metrics.find(m => m.name === 'Deep Sleep');
+  const primaryMetric = selectedMetric || sleepCategory?.metrics.find(m => m.name === 'Deep Sleep');
 
   // Combine all metrics into a single array for key changes section
   const allMetrics = [
@@ -239,93 +239,112 @@ const Insights = () => {
               </div>
             </div>
             
-            {/* Key changes section - Imported from KeyChanges component */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-4">Key Changes</h2>
-              
-              {/* Tabs for different time periods */}
-              <div className="flex space-x-2 mb-4">
-                <Button 
-                  size="sm"
-                  variant={activePeriod === 'day' ? 'default' : 'outline'}
-                  onClick={() => setActivePeriod('day')}
-                >
-                  Daily
-                </Button>
-                <Button 
-                  size="sm"
-                  variant={activePeriod === 'week' ? 'default' : 'outline'}
-                  onClick={() => setActivePeriod('week')}
-                >
-                  Weekly
-                </Button>
-                <Button 
-                  size="sm"
-                  variant={activePeriod === 'month' ? 'default' : 'outline'}
-                  onClick={() => setActivePeriod('month')}
-                >
-                  Monthly
-                </Button>
-              </div>
-              
-              {/* Most significant changes */}
-              <div className="space-y-4">
-                {allMetrics
-                  .filter(m => Math.abs(m.percentChange) > 5)
-                  .sort((a, b) => Math.abs(b.percentChange) - Math.abs(a.percentChange))
-                  .slice(0, 4)
-                  .map(metric => (
-                    <div key={metric.id} className="group">
-                      <div className="flex items-stretch border border-border rounded-lg overflow-hidden">
-                        {/* Status indicator */}
-                        <div 
-                          className={`w-1.5 h-auto ${
-                            metric.status === 'success' ? 'bg-green-500' :
-                            metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                        />
+            {/* Key changes section - Styled like the screenshot */}
+            <div className="mb-6 space-y-6">
+              {/* What Improved Section */}
+              <div className="bg-gray-900 rounded-lg p-4">
+                <h2 className="text-lg font-bold mb-4 flex items-center text-green-500">
+                  <ArrowUp className="h-5 w-5 mr-2" /> What Improved
+                </h2>
+                
+                <div className="space-y-6">
+                  {/* Improved metrics */}
+                  {allMetrics
+                    .filter(m => m.percentChange > 0)
+                    .sort((a, b) => b.percentChange - a.percentChange)
+                    .slice(0, 3)
+                    .map(metric => (
+                      <div key={metric.id} className="flex items-start">
+                        {/* Icon */}
+                        <div className="bg-green-800/40 p-2 rounded-full mr-3">
+                          <ActivityIcon className="h-6 w-6 text-green-500" />
+                        </div>
                         
-                        {/* Main content */}
-                        <div className="flex-1 p-3">
+                        {/* Metric info */}
+                        <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium text-base">{metric.name}</h3>
-                              <p className="text-sm text-muted-foreground">{metric.tooltip || 'Your measurement over time'}</p>
+                              <div className="text-sm text-gray-400 mt-1">
+                                Before: {Number(metric.value - (metric.value * metric.percentChange / 100)).toFixed(0)} {metric.unit}
+                                <span className="mx-2">→</span>
+                                After: {metric.value} {metric.unit}
+                              </div>
                             </div>
-                            
-                            {/* Change indicator */}
-                            <div className={`text-right ${
-                              metric.status === 'success' ? 'text-green-500' :
-                              metric.status === 'warning' ? 'text-yellow-500' : 'text-red-500'
-                            }`}>
-                              <div className="text-lg font-semibold">
-                                {metric.percentChange >= 0 ? '+' : ''}{metric.percentChange}%
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {metric.value} {metric.unit}
-                              </div>
+                            <div className="text-green-500 font-bold">
+                              +{metric.percentChange.toFixed(1)}%
+                              <div className="text-xs text-gray-400 text-right mt-1">change</div>
                             </div>
                           </div>
                           
-                          {/* Mini chart */}
-                          <div className="h-20 mt-2">
-                            <MiniChart data={metric.historicalData} color={
-                              metric.status === 'success' ? 'var(--green-500)' :
-                              metric.status === 'warning' ? 'var(--yellow-500)' : 'var(--red-500)'
-                            } />
+                          {/* Simplified chart */}
+                          <div className="mt-3 mb-1">
+                            <svg width="100%" height="24" viewBox="0 0 100 24" className="text-green-500 stroke-current">
+                              <path d="M0,20 C30,15 60,25 100,5" fill="none" strokeWidth="2" />
+                            </svg>
+                          </div>
+                          
+                          {/* Health benefit label */}
+                          <div className="text-sm text-gray-300 mt-1 text-right">
+                            {metric.percentChange > 30 ? 'Major health benefit' : 
+                              metric.percentChange > 15 ? 'Better cardiovascular health' : 
+                                'Health improvement'}
                           </div>
                         </div>
                       </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+              </div>
+              
+              {/* What Decreased Section */}
+              <div className="bg-gray-900 rounded-lg p-4">
+                <h2 className="text-lg font-bold mb-4 flex items-center text-red-500">
+                  <ChevronDown className="h-5 w-5 mr-2" /> What Decreased
+                </h2>
+                
+                <div className="space-y-6">
+                  {/* Decreased metrics */}
+                  {allMetrics
+                    .filter(m => m.percentChange < 0)
+                    .sort((a, b) => a.percentChange - b.percentChange)
+                    .slice(0, 2)
+                    .map(metric => (
+                      <div key={metric.id} className="flex items-start">
+                        {/* Icon */}
+                        <div className="bg-red-800/40 p-2 rounded-full mr-3">
+                          <Activity className="h-6 w-6 text-red-500" />
+                        </div>
+                        
+                        {/* Metric info */}
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium text-base">{metric.name}</h3>
+                              <div className="text-sm text-gray-400 mt-1">
+                                Before: {Number(metric.value - (metric.value * metric.percentChange / 100)).toFixed(0)} {metric.unit}
+                                <span className="mx-2">→</span>
+                                After: {metric.value} {metric.unit}
+                              </div>
+                            </div>
+                            <div className="text-red-500 font-bold">
+                              {metric.percentChange.toFixed(1)}%
+                              <div className="text-xs text-gray-400 text-right mt-1">change</div>
+                            </div>
+                          </div>
+                          
+                          {/* Simplified chart */}
+                          <div className="mt-3 mb-1">
+                            <svg width="100%" height="24" viewBox="0 0 100 24" className="text-red-500 stroke-current">
+                              <path d="M0,5 C30,15 60,5 100,20" fill="none" strokeWidth="2" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
           </>
-        )}
-        
-        {/* Key Changes Section */}
-        {activeCategory === 'key-changes' && (
-          <KeyChanges metrics={allMetrics} />
         )}
         
         {/* Sleep Section */}
