@@ -55,12 +55,6 @@ const AppHeader = ({
           Overview
         </button>
         <button 
-          className={`pb-2 mr-6 ${activeCategory === 'other-factors' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
-          onClick={() => onCategoryChange('other-factors')}
-        >
-          Other Factors
-        </button>
-        <button 
           className={`pb-2 mr-6 ${activeCategory === 'sleep' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
           onClick={() => onCategoryChange('sleep')}
         >
@@ -85,10 +79,10 @@ const AppHeader = ({
           Stress
         </button>
         <button 
-          className={`pb-2 ${activeCategory === 'ask' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
-          onClick={() => onCategoryChange('ask')}
+          className={`pb-2 ${activeCategory === 'other-factors' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
+          onClick={() => onCategoryChange('other-factors')}
         >
-          Ask
+          Other Factors
         </button>
       </div>
     </div>
