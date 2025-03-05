@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown, ClipboardList, X } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
@@ -244,12 +245,11 @@ const Insights = () => {
                   </div>
                 </div>
                 
-                {/* Main chart area */}
-                <div className="border border-border rounded-lg p-4 h-[400px] bg-card">
-                  {/* Comprehensive progress chart showing historical vs study data */}
+                {/* Main chart area using Recharts */}
+                <div className="border border-border rounded-lg p-4 h-[350px] bg-card">
                   <div className="h-full flex flex-col">
-                    <div className="text-sm font-medium mb-4 flex items-center justify-between">
-                      <div>{viewingMetricChart.name} Over Time</div>
+                    <div className="text-sm font-medium mb-2 flex items-center justify-between">
+                      <div>{viewingMetricChart.name} Progress Over Time</div>
                       <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center">
                           <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
@@ -262,80 +262,61 @@ const Insights = () => {
                       </div>
                     </div>
                     
-                    {/* Chart visualization */}
-                    <div className="flex-grow relative">
-                      {/* Simulated chart - for demonstration */}
-                      <div className="absolute inset-0 flex pl-12 pr-4"> {/* Added padding to account for y-axis labels */}
-                        <div className="w-full flex flex-col">
-                          <div className="flex-1 relative">
-                            {/* Grid lines */}
-                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                              <div className="border-b border-gray-800/30 h-1/4"></div>
-                              <div className="border-b border-gray-800/30 h-1/4"></div>
-                              <div className="border-b border-gray-800/30 h-1/4"></div>
-                              <div className="border-b border-gray-800/30 h-1/4"></div>
-                            </div>
-                            
-                            {/* Bar chart container */}
-                            <div className="absolute inset-0 flex items-end">
-                              {/* Pre-study data points (lighter color) */}
-                              {Array.from({length: 10}).map((_, i) => {
-                                // Calculate a height between 15% and 50% with some randomness but slight upward trend
-                                const heightPercent = Math.max(15, Math.min(50, 20 + i * 1.5 + Math.random() * 15));
-                                return (
-                                  <div key={`pre-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
-                                    <div 
-                                      className="bg-gray-400/80 w-full rounded-t transition-all duration-300" 
-                                      style={{
-                                        height: `${heightPercent}%`,
-                                      }}
-                                    ></div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            
-                            {/* Study data points overlay */}
-                            <div className="absolute inset-0 flex items-end ml-[50%]">
-                              {/* Study data points (primary color, showing improvement trend) */}
-                              {Array.from({length: 10}).map((_, i) => {
-                                // Calculate a height between 30% and 80% with clear upward trend for study data
-                                const heightPercent = Math.max(30, Math.min(80, 35 + i * 4 + Math.random() * 5));
-                                return (
-                                  <div key={`study-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
-                                    <div 
-                                      className="bg-primary w-full rounded-t transition-all duration-300" 
-                                      style={{
-                                        height: `${heightPercent}%`,
-                                      }}
-                                    ></div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-
-                      
-                      {/* Y-axis labels */}
-                      <div className="absolute left-0 inset-y-0 w-12 flex flex-col justify-between text-xs text-muted-foreground py-2">
-                        <div>100%</div>
-                        <div>75%</div>
-                        <div>50%</div>
-                        <div>25%</div>
-                        <div>0%</div>
-                      </div>
-                    </div>
-                    
-                    {/* X-axis labels */}
-                    <div className="h-6 mt-4 flex text-xs text-muted-foreground">
-                      <div className="flex-1 text-center">Pre-study</div>
-                      <div className="flex-1 text-center">Study start</div>
-                      <div className="flex-1 text-center">Week 2</div>
-                      <div className="flex-1 text-center">Week 4</div>
-                      <div className="flex-1 text-center">Study end</div>
+                    <div className="h-full w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="name"
+                            tick={{ fontSize: 12 }}
+                            tickMargin={10}
+                          />
+                          <YAxis 
+                            domain={[0, 'auto']}
+                            tickFormatter={(value) => `${value}${viewingMetricChart.unit}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: "#111", borderColor: "#333" }}
+                            formatter={(value, name) => [`${value} ${viewingMetricChart.unit}`, name]}
+                          />
+                          <Legend />
+                          
+                          {/* Pre-study data */}
+                          <Line
+                            data={[
+                              { name: "4 weeks before", value: Math.round(viewingMetricChart.value * 0.7) },
+                              { name: "3 weeks before", value: Math.round(viewingMetricChart.value * 0.73) },
+                              { name: "2 weeks before", value: Math.round(viewingMetricChart.value * 0.78) }
+                            ]}
+                            name="Pre-study baseline"
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#888"
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }}
+                          />
+                          
+                          {/* During study data */}
+                          <Line
+                            data={[
+                              { name: "Study week 1", value: Math.round(viewingMetricChart.value * 0.85) },
+                              { name: "Study week 2", value: Math.round(viewingMetricChart.value * 0.9) },
+                              { name: "Study week 3", value: Math.round(viewingMetricChart.value * 0.95) },
+                              { name: "Study end", value: viewingMetricChart.value }
+                            ]}
+                            name={`${viewingMetricChart.name}`}
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#4264fb"
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }}
+                          />
+                          
+                          <ReferenceLine x="Study week 1" stroke="#666" label={{ value: 'Study Start', position: 'insideTopRight' }} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
