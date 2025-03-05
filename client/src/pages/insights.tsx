@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown, ClipboardList, X } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, Label } from 'recharts';
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
