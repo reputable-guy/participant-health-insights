@@ -221,9 +221,6 @@ const Insights = () => {
             <div className="mb-6">
               <h3 className="text-sm font-medium mb-2">Explore your results:</h3>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => setActiveCategory('key-changes')} className="flex gap-2 items-center">
-                  <Award className="h-4 w-4" /> Key Changes
-                </Button>
                 <Button size="sm" variant="outline" onClick={() => setActiveCategory('sleep')} className="flex gap-2 items-center">
                   <Moon className="h-4 w-4" /> Sleep
                 </Button>
@@ -233,56 +230,95 @@ const Insights = () => {
                 <Button size="sm" variant="outline" onClick={() => setActiveCategory('heart')} className="flex gap-2 items-center">
                   <Heart className="h-4 w-4" /> Heart
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('stress')} className="flex gap-2 items-center">
+                  <Diamond className="h-4 w-4" /> Stress
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('other-factors')} className="flex gap-2 items-center">
+                  <Sparkles className="h-4 w-4" /> Other Factors
+                </Button>
               </div>
             </div>
             
-            {/* Key changes section - Combined into the overview instead of separate */}
+            {/* Key changes section - Imported from KeyChanges component */}
             <div className="mb-6">
               <h2 className="text-xl font-bold mb-4">Key Changes</h2>
+              
+              {/* Tabs for different time periods */}
+              <div className="flex space-x-2 mb-4">
+                <Button 
+                  size="sm"
+                  variant={activePeriod === 'day' ? 'default' : 'outline'}
+                  onClick={() => setActivePeriod('day')}
+                >
+                  Daily
+                </Button>
+                <Button 
+                  size="sm"
+                  variant={activePeriod === 'week' ? 'default' : 'outline'}
+                  onClick={() => setActivePeriod('week')}
+                >
+                  Weekly
+                </Button>
+                <Button 
+                  size="sm"
+                  variant={activePeriod === 'month' ? 'default' : 'outline'}
+                  onClick={() => setActivePeriod('month')}
+                >
+                  Monthly
+                </Button>
+              </div>
+              
+              {/* Most significant changes */}
               <div className="space-y-4">
-                {/* Significant metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {allMetrics.filter(m => Math.abs(m.percentChange) > 10).slice(0, 4).map(metric => (
-                    <div
-                      key={metric.id}
-                      className="border border-border rounded-lg p-3 cursor-pointer hover:bg-primary/5 transition-colors"
-                      onClick={() => setPrimaryMetric(metric)}
-                    >
-                      <MetricCard metric={metric} />
-                      
-                      {/* Show a mini chart when clicked on this metric */}
-                      {(primaryMetric && primaryMetric.id === metric.id) && (
-                        <div className="mt-3 border-t border-border pt-3">
-                          <h4 className="text-sm font-medium mb-2">Trend over time</h4>
-                          <div className="h-20">
-                            <MiniChart data={metric.historicalData} color="var(--primary)" />
+                {allMetrics
+                  .filter(m => Math.abs(m.percentChange) > 5)
+                  .sort((a, b) => Math.abs(b.percentChange) - Math.abs(a.percentChange))
+                  .slice(0, 4)
+                  .map(metric => (
+                    <div key={metric.id} className="group">
+                      <div className="flex items-stretch border border-border rounded-lg overflow-hidden">
+                        {/* Status indicator */}
+                        <div 
+                          className={`w-1.5 h-auto ${
+                            metric.status === 'success' ? 'bg-green-500' :
+                            metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                        />
+                        
+                        {/* Main content */}
+                        <div className="flex-1 p-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium text-base">{metric.name}</h3>
+                              <p className="text-sm text-muted-foreground">{metric.tooltip || 'Your measurement over time'}</p>
+                            </div>
+                            
+                            {/* Change indicator */}
+                            <div className={`text-right ${
+                              metric.status === 'success' ? 'text-green-500' :
+                              metric.status === 'warning' ? 'text-yellow-500' : 'text-red-500'
+                            }`}>
+                              <div className="text-lg font-semibold">
+                                {metric.percentChange >= 0 ? '+' : ''}{metric.percentChange}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {metric.value} {metric.unit}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Mini chart */}
+                          <div className="h-20 mt-2">
+                            <MiniChart data={metric.historicalData} color={
+                              metric.status === 'success' ? 'var(--green-500)' :
+                              metric.status === 'warning' ? 'var(--yellow-500)' : 'var(--red-500)'
+                            } />
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  ))}
-                </div>
-                
-                {/* View more link */}
-                <div className="flex justify-center">
-                  <Button variant="outline" onClick={() => setActiveCategory('key-changes')}>
-                    View All Changes
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Correlations Section */}
-            <div className="mb-3">
-              <CategoryHeader title="Key Correlations" icon={<Sparkles className="h-5 w-5" />}>
-                <p className="text-sm text-muted-foreground mb-4">
-                  These are factors that appeared to influence your results the most during the study.
-                </p>
-                {healthData.correlationFactors.map(factor => (
-                  <CorrelationCard key={factor.id} factor={factor} />
                 ))}
-              </CategoryHeader>
+              </div>
             </div>
           </>
         )}
@@ -387,6 +423,21 @@ const Insights = () => {
               </div>
             </div>
           </CategoryHeader>
+        )}
+        
+        {/* Other Factors Section (previously Correlations) */}
+        {activeCategory === 'other-factors' && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">Other Factors</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              These are factors that appeared to influence your results the most during the study. They are tracked in the app and may correlate with changes in your metrics.
+            </p>
+            <div className="space-y-4">
+              {healthData.correlationFactors.map(factor => (
+                <CorrelationCard key={factor.id} factor={factor} />
+              ))}
+            </div>
+          </div>
         )}
         
         {/* Ask Questions Section - Shows full history */}
