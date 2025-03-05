@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown, ClipboardList } from "lucide-react";
+import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown, ClipboardList, X } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
@@ -27,6 +27,8 @@ const Insights = () => {
   const [askedQuestions, setAskedQuestions] = useState<{question: string, answer: string}[]>([]);
   // State for time period selection in Progress Over Time chart
   const [activePeriod, setActivePeriod] = useState<'day' | 'week' | 'month'>('week');
+  // State for tracking which metric chart is being viewed
+  const [viewingMetricChart, setViewingMetricChart] = useState<MetricData | null>(null);
   
   const { data, isLoading, error } = useQuery<HealthData>({
     queryKey: [`/api/health-data`],
@@ -175,6 +177,168 @@ const Insights = () => {
       </div>
       
       <main className="p-4 space-y-6">
+        {/* Metric Details with Progress Chart */}
+        {viewingMetricChart && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6 space-y-6">
+                {/* Header with close button */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{viewingMetricChart.name} Progress</h2>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setViewingMetricChart(null)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+                
+                {/* Metrics at a glance */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-muted/30 p-4 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-1">Current Value</div>
+                    <div className="text-2xl font-bold">{viewingMetricChart.value} {viewingMetricChart.unit}</div>
+                  </div>
+                  <div className="bg-muted/30 p-4 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-1">Change</div>
+                    <div className={`text-2xl font-bold ${viewingMetricChart.percentChange > 0 ? 'text-green-500' : viewingMetricChart.percentChange < 0 ? 'text-red-500' : ''}`}>
+                      {viewingMetricChart.percentChange > 0 ? '+' : ''}{viewingMetricChart.percentChange.toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 p-4 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-1">Baseline Value</div>
+                    <div className="text-2xl font-bold">
+                      {Number(viewingMetricChart.value - (viewingMetricChart.value * viewingMetricChart.percentChange / 100)).toFixed(1)} {viewingMetricChart.unit}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Time period selector */}
+                <div className="flex justify-end">
+                  <div className="inline-flex rounded-md shadow-sm">
+                    <Button
+                      variant={activePeriod === 'day' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActivePeriod('day')}
+                      className={`rounded-l-md rounded-r-none ${activePeriod === 'day' ? '' : 'text-muted-foreground'}`}
+                    >
+                      Daily
+                    </Button>
+                    <Button
+                      variant={activePeriod === 'week' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActivePeriod('week')}
+                      className={`rounded-none border-l-0 border-r-0 ${activePeriod === 'week' ? '' : 'text-muted-foreground'}`}
+                    >
+                      Weekly
+                    </Button>
+                    <Button
+                      variant={activePeriod === 'month' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActivePeriod('month')}
+                      className={`rounded-r-md rounded-l-none ${activePeriod === 'month' ? '' : 'text-muted-foreground'}`}
+                    >
+                      Monthly
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Main chart area */}
+                <div className="border border-border rounded-lg p-4 h-[400px] bg-card">
+                  {/* Comprehensive progress chart showing historical vs study data */}
+                  <div className="h-full flex flex-col">
+                    <div className="text-sm font-medium mb-4 flex items-center justify-between">
+                      <div>{viewingMetricChart.name} Over Time</div>
+                      <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                          <span>Pre-study</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                          <span>During study</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Chart visualization */}
+                    <div className="flex-grow relative">
+                      {/* Simulated chart - for demonstration */}
+                      <div className="absolute inset-0 flex items-end">
+                        {/* Pre-study data points (lighter color) */}
+                        {Array.from({length: 10}).map((_, i) => (
+                          <div key={`pre-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
+                            <div 
+                              className="bg-gray-400/60 w-full rounded-t" 
+                              style={{
+                                height: `${Math.max(15, 20 + Math.random() * 35)}%`,
+                              }}
+                            ></div>
+                          </div>
+                        ))}
+                        
+                        {/* Study data points (primary color, showing improvement trend) */}
+                        {Array.from({length: 10}).map((_, i) => (
+                          <div key={`study-${i}`} className="flex-1 flex flex-col justify-end px-0.5">
+                            <div 
+                              className="bg-primary w-full rounded-t" 
+                              style={{
+                                height: `${Math.max(25, 30 + i * 4 + Math.random() * 10)}%`,
+                              }}
+                            ></div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 inset-y-0 w-12 flex flex-col justify-between text-xs text-muted-foreground">
+                        <div>100%</div>
+                        <div>75%</div>
+                        <div>50%</div>
+                        <div>25%</div>
+                        <div>0%</div>
+                      </div>
+                    </div>
+                    
+                    {/* X-axis labels */}
+                    <div className="h-6 mt-4 flex text-xs text-muted-foreground">
+                      <div className="flex-1 text-center">Pre-study</div>
+                      <div className="flex-1 text-center">Study start</div>
+                      <div className="flex-1 text-center">Week 2</div>
+                      <div className="flex-1 text-center">Week 4</div>
+                      <div className="flex-1 text-center">Study end</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Interpretation of data */}
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <h3 className="font-medium mb-2">Data Interpretation</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {viewingMetricChart.percentChange > 15 ? 
+                      `Your ${viewingMetricChart.name.toLowerCase()} showed significant improvement during the study, with a ${viewingMetricChart.percentChange.toFixed(1)}% increase from your baseline measurements.` :
+                      viewingMetricChart.percentChange > 0 ?
+                      `Your ${viewingMetricChart.name.toLowerCase()} showed moderate improvement during the study, with a ${viewingMetricChart.percentChange.toFixed(1)}% increase from your baseline.` :
+                      viewingMetricChart.percentChange < 0 ?
+                      `Your ${viewingMetricChart.name.toLowerCase()} decreased by ${Math.abs(viewingMetricChart.percentChange).toFixed(1)}% during the study period.` :
+                      `Your ${viewingMetricChart.name.toLowerCase()} remained stable throughout the study period.`
+                    }
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    The chart above shows your measurements before the study began (gray) compared to during the study period (colored). The trend indicates 
+                    {viewingMetricChart.percentChange > 0 
+                      ? " a positive response to the intervention."
+                      : viewingMetricChart.percentChange < 0
+                      ? " a potential area for further investigation."
+                      : " consistent values throughout the measurement period."
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Overview Section */}
         {activeCategory === 'overview' && (
           <>
@@ -359,13 +523,17 @@ const Insights = () => {
               <div className="space-y-3">
                 {/* Featured metrics (full size) */}
                 {sleepCategory.metrics.slice(0, 2).map(metric => (
-                  <MetricCard key={metric.id} metric={metric} />
+                  <div key={metric.id} onClick={() => setViewingMetricChart(metric)} className="cursor-pointer">
+                    <MetricCard metric={metric} />
+                  </div>
                 ))}
                 
                 {/* Other metrics (compact grid) */}
                 <div className="grid grid-cols-2 gap-3">
                   {sleepCategory.metrics.slice(2).map(metric => (
-                    <MetricCard key={metric.id} metric={metric} compact />
+                    <div key={metric.id} onClick={() => setViewingMetricChart(metric)} className="cursor-pointer">
+                      <MetricCard metric={metric} compact />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -403,12 +571,16 @@ const Insights = () => {
           <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
-              <MetricCard metric={activityCategory.metrics[0]} />
+              <div onClick={() => setViewingMetricChart(activityCategory.metrics[0])} className="cursor-pointer">
+                <MetricCard metric={activityCategory.metrics[0]} />
+              </div>
               
               {/* Other metrics (compact grid) */}
               <div className="grid grid-cols-2 gap-3">
                 {activityCategory.metrics.slice(1).map(metric => (
-                  <MetricCard key={metric.id} metric={metric} compact />
+                  <div key={metric.id} onClick={() => setViewingMetricChart(metric)} className="cursor-pointer">
+                    <MetricCard metric={metric} compact />
+                  </div>
                 ))}
               </div>
             </div>
@@ -420,12 +592,16 @@ const Insights = () => {
           <CategoryHeader title="Cardiovascular Health" icon={<Heart className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
-              <MetricCard metric={cardiovascularCategory.metrics[0]} />
+              <div onClick={() => setViewingMetricChart(cardiovascularCategory.metrics[0])} className="cursor-pointer">
+                <MetricCard metric={cardiovascularCategory.metrics[0]} />
+              </div>
               
               {/* Other metrics (compact grid) */}
               <div className="grid grid-cols-2 gap-3">
                 {cardiovascularCategory.metrics.slice(1).map(metric => (
-                  <MetricCard key={metric.id} metric={metric} compact />
+                  <div key={metric.id} onClick={() => setViewingMetricChart(metric)} className="cursor-pointer">
+                    <MetricCard metric={metric} compact />
+                  </div>
                 ))}
               </div>
             </div>
@@ -437,12 +613,16 @@ const Insights = () => {
           <CategoryHeader title="Stress & Recovery" icon={<Diamond className="h-5 w-5" />}>
             <div className="space-y-3">
               {/* Featured metrics (full size) */}
-              <MetricCard metric={stressCategory.metrics[0]} />
+              <div onClick={() => setViewingMetricChart(stressCategory.metrics[0])} className="cursor-pointer">
+                <MetricCard metric={stressCategory.metrics[0]} />
+              </div>
               
               {/* Other metrics (compact grid) */}
               <div className="grid grid-cols-2 gap-3">
                 {stressCategory.metrics.slice(1).map(metric => (
-                  <MetricCard key={metric.id} metric={metric} compact />
+                  <div key={metric.id} onClick={() => setViewingMetricChart(metric)} className="cursor-pointer">
+                    <MetricCard metric={metric} compact />
+                  </div>
                 ))}
               </div>
             </div>
