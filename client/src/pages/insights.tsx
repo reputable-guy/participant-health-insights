@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Moon, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Moon, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
@@ -11,7 +11,9 @@ import StudyImpact from "@/components/ui/study-impact";
 import PeerComparison from "@/components/ui/peer-comparison";
 import AskQuestions from "@/components/ui/ask-questions";
 import TimeSeriesChart from "@/components/ui/time-series-chart";
+import MiniChart from "@/components/ui/mini-chart";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { HealthData, MetricData } from "@/lib/types";
 import { format } from "date-fns";
 
@@ -19,11 +21,43 @@ const Insights = () => {
   const [activeCategory, setActiveCategory] = useState('overview');
   const [comparisonFilter, setComparisonFilter] = useState("All Participants");
   const [selectedMetric, setPrimaryMetric] = useState<MetricData | null>(null);
+  const [customQuestion, setCustomQuestion] = useState("");
+  const [askedQuestions, setAskedQuestions] = useState<{question: string, answer: string}[]>([]);
   // State for time period selection in Progress Over Time chart
   const [activePeriod, setActivePeriod] = useState<'day' | 'week' | 'month'>('week');
   
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<HealthData>({
     queryKey: [`/api/health-data`],
+  });
+  
+  // Mutation for asking questions
+  const askQuestionMutation = useMutation({
+    mutationFn: async (question: string) => {
+      const studyName = data?.studyInfo?.studyName || "Acupressure Mat Study";
+      
+      const response = await fetch('/api/ask-question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          question,
+          studyName
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to send question');
+      }
+      return response.json();
+    },
+    onSuccess: (data: {question: string, answer: string}) => {
+      const newQuestion = {
+        question: data.question,
+        answer: data.answer
+      };
+      setAskedQuestions(prev => [newQuestion, ...prev]);
+      setCustomQuestion("");
+    }
   });
 
   if (isLoading) {
@@ -80,6 +114,64 @@ const Insights = () => {
         onCategoryChange={setActiveCategory}
       />
       
+      {/* Sticky chat bar at the top */}
+      <div className="sticky top-16 z-10 bg-background shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-2">
+          {/* Questions input area */}
+          <div className="flex items-center border-b border-border pb-2">
+            <Textarea 
+              placeholder="Ask any question about your results..." 
+              value={customQuestion}
+              onChange={(e) => setCustomQuestion(e.target.value)}
+              className="min-h-0 h-10 py-2 resize-none flex-grow mr-2"
+              onKeyDown={(e) => {
+                // Submit on Enter (without shift key)
+                if (e.key === 'Enter' && !e.shiftKey && customQuestion.trim()) {
+                  e.preventDefault();
+                  askQuestionMutation.mutate(customQuestion);
+                }
+              }}
+            />
+            <Button 
+              onClick={() => {
+                if (customQuestion.trim()) {
+                  askQuestionMutation.mutate(customQuestion);
+                }
+              }}
+              disabled={!customQuestion.trim() || askQuestionMutation.isPending}
+              size="sm"
+            >
+              {askQuestionMutation.isPending ? 
+                <Loader2 className="h-4 w-4 animate-spin" /> : 
+                <MessageSquare className="h-4 w-4" />
+              }
+            </Button>
+          </div>
+          
+          {/* Most recent answer display (only shows the last answer) */}
+          {askedQuestions.length > 0 && (
+            <div className="py-2 max-h-[200px] overflow-y-auto border-b border-border">
+              <div className="bg-muted/30 rounded-lg p-3">
+                <p className="text-sm font-medium mb-1">{askedQuestions[0].question}</p>
+                <p className="text-sm whitespace-pre-line">{askedQuestions[0].answer}</p>
+                
+                {/* Show more answers button */}
+                {askedQuestions.length > 1 && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="px-0 text-xs mt-1"
+                    onClick={() => setActiveCategory('ask')}
+                  >
+                    View {askedQuestions.length - 1} more answered question{askedQuestions.length > 2 ? 's' : ''}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
       <main className="p-4 space-y-6">
         {/* Overview Section */}
         {activeCategory === 'overview' && (
@@ -125,78 +217,59 @@ const Insights = () => {
               </div>
             )}
             
-            {/* Your Progress Over Time */}
+            {/* Navigation panel - At the top of the useful content */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-4">Your Progress Over Time</h2>
-              <TimeSeriesChart 
-                title={primaryMetric ? `${primaryMetric.name} Trend` : "Deep Sleep Trend"} 
-                metrics={primaryMetric ? [primaryMetric] : (sleepCategory?.metrics ? [sleepCategory.metrics[0]] : [])} 
-                activePeriod={activePeriod}
-                onPeriodChange={setActivePeriod}
-              />
-            </div>
-            
-            {/* Questions and Navigation */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Ask Questions Feature - Right in the overview */}
-              <div className="col-span-1 md:col-span-3">
-                <div className="bg-surface border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <h3 className="font-medium">Have questions about your results?</h3>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Our AI assistant can answer questions about your study results and what they mean for your health.
-                  </p>
-                  
-                  <Button onClick={() => setActiveCategory('ask')} className="flex gap-2 items-center">
-                    <HelpCircle className="h-4 w-4" /> Ask a Question
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Jump to section navigation */}
-              <div className="col-span-1 md:col-span-1">
-                <h3 className="text-sm font-medium mb-2">Explore your results:</h3>
-                <div className="flex flex-col gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('key-changes')} className="flex gap-2 items-center justify-start">
-                    <Award className="h-4 w-4" /> Key Changes
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('sleep')} className="flex gap-2 items-center justify-start">
-                    <Moon className="h-4 w-4" /> Sleep
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('activity')} className="flex gap-2 items-center justify-start">
-                    <ActivityIcon className="h-4 w-4" /> Activity
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setActiveCategory('heart')} className="flex gap-2 items-center justify-start">
-                    <Heart className="h-4 w-4" /> Heart
-                  </Button>
-                </div>
+              <h3 className="text-sm font-medium mb-2">Explore your results:</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('key-changes')} className="flex gap-2 items-center">
+                  <Award className="h-4 w-4" /> Key Changes
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('sleep')} className="flex gap-2 items-center">
+                  <Moon className="h-4 w-4" /> Sleep
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('activity')} className="flex gap-2 items-center">
+                  <ActivityIcon className="h-4 w-4" /> Activity
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveCategory('heart')} className="flex gap-2 items-center">
+                  <Heart className="h-4 w-4" /> Heart
+                </Button>
               </div>
             </div>
             
-            {/* Top Categories - Simplified View */}
+            {/* Key changes section - Combined into the overview instead of separate */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-4">Your Key Metrics</h2>
+              <h2 className="text-xl font-bold mb-4">Key Changes</h2>
               <div className="space-y-4">
-                {sleepCategory && (
-                  <CategoryHeader title="Sleep" icon={<Moon className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      {sleepCategory.metrics.slice(0, 2).map(metric => (
-                        <MetricCard key={metric.id} metric={metric} />
-                      ))}
+                {/* Significant metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {allMetrics.filter(m => Math.abs(m.percentChange) > 10).slice(0, 4).map(metric => (
+                    <div
+                      key={metric.id}
+                      className="border border-border rounded-lg p-3 cursor-pointer hover:bg-primary/5 transition-colors"
+                      onClick={() => setPrimaryMetric(metric)}
+                    >
+                      <MetricCard metric={metric} />
+                      
+                      {/* Show a mini chart when clicked on this metric */}
+                      {(primaryMetric && primaryMetric.id === metric.id) && (
+                        <div className="mt-3 border-t border-border pt-3">
+                          <h4 className="text-sm font-medium mb-2">Trend over time</h4>
+                          <div className="h-20">
+                            <MiniChart data={metric.historicalData} color="var(--primary)" />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </CategoryHeader>
-                )}
+                  ))}
+                </div>
                 
-                {activityCategory && (
-                  <CategoryHeader title="Activity" icon={<ActivityIcon className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      <MetricCard metric={activityCategory.metrics[0]} />
-                    </div>
-                  </CategoryHeader>
-                )}
+                {/* View more link */}
+                <div className="flex justify-center">
+                  <Button variant="outline" onClick={() => setActiveCategory('key-changes')}>
+                    View All Changes
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -316,9 +389,110 @@ const Insights = () => {
           </CategoryHeader>
         )}
         
-        {/* Ask Questions Section */}
+        {/* Ask Questions Section - Shows full history */}
         {activeCategory === 'ask' && (
-          <AskQuestions studyName={healthData.studyInfo.studyName} />
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold mb-4">Questions & Answers</h2>
+              <p className="text-muted-foreground mb-4">
+                Here you can view all your previous questions about your study results.
+              </p>
+              
+              {/* Display all past questions and answers */}
+              {askedQuestions.length > 0 ? (
+                <div className="space-y-4">
+                  {askedQuestions.map((qa, index) => (
+                    <div key={index} className="border border-border rounded-lg overflow-hidden">
+                      <div className="bg-muted/50 p-4 flex items-start">
+                        <MessageSquare className="h-5 w-5 mr-3 mt-0.5 text-primary" />
+                        <div className="flex-1">
+                          <p className="font-medium">{qa.question}</p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-background">
+                        <p className="whitespace-pre-line">{qa.answer}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-dashed border-border rounded-lg p-8 text-center">
+                  <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <h3 className="text-lg font-medium mb-1">No questions yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Ask your first question using the chat bar at the top of the page.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      // Focus the textarea in the chat input
+                      const textarea = document.querySelector('textarea');
+                      if (textarea) textarea.focus();
+                    }}
+                  >
+                    Ask a question
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {/* Suggested questions section - simplified */}
+            <div className="bg-muted/30 rounded-lg p-4">
+              <h3 className="font-medium mb-3 flex items-center">
+                <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                Suggested Questions
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 text-left"
+                  onClick={() => {
+                    const question = "What does deep sleep do for my body?";
+                    askQuestionMutation.mutate(question);
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                  <span className="text-sm">What does deep sleep do for my body?</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 text-left"
+                  onClick={() => {
+                    const question = "How can I maintain these health benefits?";
+                    askQuestionMutation.mutate(question);
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                  <span className="text-sm">How can I maintain these health benefits?</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 text-left"
+                  onClick={() => {
+                    const question = "Why did my sleep improve with the acupressure mat?";
+                    askQuestionMutation.mutate(question);
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                  <span className="text-sm">Why did my sleep improve with the acupressure mat?</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 text-left"
+                  onClick={() => {
+                    const question = "What does my data tell you about my sleep patterns?";
+                    askQuestionMutation.mutate(question);
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                  <span className="text-sm">What does my data tell you about my sleep patterns?</span>
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>
