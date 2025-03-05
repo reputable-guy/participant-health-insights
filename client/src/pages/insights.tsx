@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown } from "lucide-react";
+import { Moon, Activity, ActivityIcon, Heart, Diamond, Sparkles, HelpCircle, Users, Award, MessageSquare, Loader2, ChevronRight, ArrowRight, ArrowUp, ChevronDown, ClipboardList } from "lucide-react";
 import AppHeader from "@/components/app-header";
 import CategoryHeader from "@/components/ui/category-header";
 import MetricCard from "@/components/ui/metric-card";
@@ -12,10 +12,12 @@ import PeerComparison from "@/components/ui/peer-comparison";
 import AskQuestions from "@/components/ui/ask-questions";
 import TimeSeriesChart from "@/components/ui/time-series-chart";
 import MiniChart from "@/components/ui/mini-chart";
+import SurveyCard from "@/components/ui/survey-card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { HealthData, MetricData } from "@/lib/types";
 import { format } from "date-fns";
+import { psqiSurveyData, sf36SurveyData } from "@/lib/mock-survey-data";
 
 const Insights = () => {
   const [activeCategory, setActiveCategory] = useState('overview');
@@ -442,6 +444,47 @@ const Insights = () => {
               </div>
             </div>
           </CategoryHeader>
+        )}
+        
+        {/* Surveys Section */}
+        {activeCategory === 'surveys' && (
+          <div>
+            <h2 className="text-xl font-bold mb-4 flex items-center">
+              <ClipboardList className="h-6 w-6 mr-2 text-primary" />
+              Validated Survey Results
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              These surveys were completed at the beginning and end of the study to assess changes in your subjective health metrics.
+            </p>
+            
+            {/* PSQI Survey Card */}
+            <SurveyCard 
+              surveyName={psqiSurveyData.surveyName}
+              description={psqiSurveyData.description}
+              baselineDate={psqiSurveyData.baselineDate}
+              endDate={psqiSurveyData.endDate}
+              totalBaselineScore={psqiSurveyData.totalBaselineScore}
+              totalCurrentScore={psqiSurveyData.totalCurrentScore}
+              totalMaxScore={psqiSurveyData.totalMaxScore}
+              percentChange={psqiSurveyData.percentChange}
+              components={psqiSurveyData.components}
+              higherScoreIsBetter={psqiSurveyData.higherScoreIsBetter}
+            />
+            
+            {/* SF-36 Survey Card */}
+            <SurveyCard 
+              surveyName={sf36SurveyData.surveyName}
+              description={sf36SurveyData.description}
+              baselineDate={sf36SurveyData.baselineDate}
+              endDate={sf36SurveyData.endDate}
+              totalBaselineScore={sf36SurveyData.totalBaselineScore}
+              totalCurrentScore={sf36SurveyData.totalCurrentScore}
+              totalMaxScore={sf36SurveyData.totalMaxScore}
+              percentChange={sf36SurveyData.percentChange}
+              components={sf36SurveyData.components}
+              higherScoreIsBetter={sf36SurveyData.higherScoreIsBetter}
+            />
+          </div>
         )}
         
         {/* Other Factors Section (previously Correlations) */}

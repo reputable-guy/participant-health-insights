@@ -76,6 +76,12 @@ const AppHeader = ({
           Stress
         </button>
         <button 
+          className={`pb-2 mr-6 ${activeCategory === 'surveys' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
+          onClick={() => onCategoryChange('surveys')}
+        >
+          Surveys
+        </button>
+        <button 
           className={`pb-2 ${activeCategory === 'other-factors' ? 'text-primary border-b-2 border-primary font-medium' : 'text-muted-foreground'}`}
           onClick={() => onCategoryChange('other-factors')}
         >
